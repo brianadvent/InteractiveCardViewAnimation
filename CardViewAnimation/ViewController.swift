@@ -27,6 +27,8 @@ class ViewController: UIViewController {
         return cardVisible ? .collapsed : .expanded
     }
     
+    var velocityFactor : CGFloat = 1000
+    
     var runningAnimations = [UIViewPropertyAnimator]()
     var animationProgressWhenInterrupted:CGFloat = 0
     
@@ -78,7 +80,30 @@ class ViewController: UIViewController {
             fractionComplete = cardVisible ? fractionComplete : -fractionComplete
             updateInteractiveTransition(fractionCompleted: fractionComplete)
         case .ended:
-            continueInteractiveTransition()
+            
+            //Here, check where to snap the card view as velocity and position
+            //of card view (while drag) changes.
+            //velocityFactor decides how much velocity contributes in the
+            //decision of where to snap the card view.
+            let translation = recognizer.translation(in: self.cardViewController.handleArea)
+            var fractionCompleted = translation.y/cardHeight
+            var velocity = recognizer.velocity(in: self.cardViewController.handleArea).y
+            velocity = velocity > 0 ? velocity : -velocity
+            fractionCompleted = fractionCompleted > 0 ? fractionCompleted : -fractionCompleted
+            let modifiedFraction = velocity/velocityFactor + fractionCompleted
+            if modifiedFraction >= 0.5 {
+                //Just go with the flow
+                continueInteractiveTransition()
+            } else {
+                //Reverse animation direction
+                for animator in runningAnimations {
+                    animator.stopAnimation(true)
+                }
+                runningAnimations.removeAll()
+                cardVisible = !cardVisible
+                animateTransitionIfNeeded(state: nextState, duration: 0.9)
+            }
+
         default:
             break
         }

@@ -80,7 +80,6 @@ class ViewController: UIViewController {
             fractionComplete = cardVisible ? fractionComplete : -fractionComplete
             updateInteractiveTransition(fractionCompleted: fractionComplete)
         case .ended:
-            
             //Here, check where to snap the card view as velocity and position
             //of card view (while drag) changes.
             //velocityFactor decides how much velocity contributes in the
@@ -97,11 +96,11 @@ class ViewController: UIViewController {
             } else {
                 //Reverse animation direction
                 for animator in runningAnimations {
-                    animator.stopAnimation(true)
+                    animator.isReversed = true
                 }
-                runningAnimations.removeAll()
+                //Change card state to cancel out the one in the completion block.
                 cardVisible = !cardVisible
-                animateTransitionIfNeeded(state: nextState, duration: 0.9)
+                continueInteractiveTransition()
             }
 
         default:

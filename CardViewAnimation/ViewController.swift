@@ -21,7 +21,8 @@ class ViewController: UIViewController {
     
     let cardHeight:CGFloat = 600
     let cardHandleAreaHeight:CGFloat = 65
-    
+    var fractionComplete:CGFloat = 0
+
     var cardVisible = false
     var nextState:CardState {
         return cardVisible ? .collapsed : .expanded
@@ -74,10 +75,17 @@ class ViewController: UIViewController {
             startInteractiveTransition(state: nextState, duration: 0.9)
         case .changed:
             let translation = recognizer.translation(in: self.cardViewController.handleArea)
-            var fractionComplete = translation.y / cardHeight
+            fractionComplete = translation.y / cardHeight
             fractionComplete = cardVisible ? fractionComplete : -fractionComplete
             updateInteractiveTransition(fractionCompleted: fractionComplete)
         case .ended:
+            if fractionComplete <  0.25 {
+                for animator in runningAnimations {
+                    animator.isReversed = true
+                }
+                self.cardVisible = !self.cardVisible
+                self.visualEffectView.isUserInteractionEnabled = !self.visualEffectView.isUserInteractionEnabled
+            }
             continueInteractiveTransition()
         default:
             break
